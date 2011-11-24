@@ -41,83 +41,82 @@ fi
 ACPI_Event ()
 {
 
-	export _options="$*"
-
-	_Log () { logger "ACPI EVENT: $_options"; }
+	local _options="$*"
+	local _log_prefix="ACPI EVENT:"
 
 	case $1 in
 	power) shift; case $1 in
 
-		button) _Log; _Poweroff; ;;
+		button) _Poweroff; ;;
 
 		lid) shift; case $1 in
-			open) _Log ;;
-			close) _Log; _Sleep; ;;
+			open) ;;
+			close) _Sleep; ;;
 			esac ;;
 
 		hotkey) shift; case $1 in
-			battery) _Log; _Powersave; ;;
-			sleep) _Log; _Sleep; ;;
-			hibernate) _Log; _Sleep; ;;
+			battery) _Powersave; ;;
+			sleep) _Sleep; ;;
+			hibernate) _Sleep; ;;
 			esac ;;
 
 		ac) shift; case $1 in
-			connected) _Log; _Powersave max ;;
-			disconnected) _Log; _Powersave min; ;;
+			connected) _Powersave max ;;
+			disconnected) _Powersave min; ;;
 			esac ;;
 
 		battery) shift; case $1 in
-			connected) _Log ;;
-			disconnected) _Log ;;
+			connected) ;;
+			disconnected) ;;
 			esac ;;
 
 		esac ;;
 
 	security) shift; case $1 in
-		lock) _Log; physlock -dsu $USER ;;
+		lock) _Lock_System ;;
 		esac ;;
 
 	display) shift; case $1 in
 
 		video) shift; case $1 in
-			on) _Log ;;
-			off) _Log ;;
+			on) ;;
+			off) ;;
 			esac ;;
 
 		hotkey) shift; case $1 in
-			switchmode) _Log ;;
+			switchmode) ;;
 			brightness) shift; case $1 in
-				up) _Log ;;
-				down) _Log ;;
+				up) ;;
+				down) ;;
 				esac ;;
 
 			esac ;;
 
-		autolight) _Log; _Autolight ;;
+		autolight) _Autolight ;;
 		
 		esac ;;
 
 	tablet) shift; case $1 in
 
 		display) shift; case $1 in
-		    tabletmode) _Log ;;
-		    laptopmode) _Log ;;
+		    tabletmode) ;;
+		    laptopmode) ;;
 		    esac ;;
 
 		stylus) shift; case $1 in
-		    dock) _Log; xdotool key "Ctrl+F9"; ;;
-		    eject) _Log; xdotool key "Shift+F9" "F9"; ;;
+		    dock) xdotool key "Ctrl+F9"; ;;
+		    eject) xdotool key "Shift+F9" "F9"; ;;
 		    esac ;;
 
 		esac ;;
 
 	wireless) shift; case $1 in
 
-		switch) _Log _Switch_Radios ;;
+		switch) _Switch_Radios ;;
 
 		hotkey) shift; case $1 in
-			wifi) _Log; _Toggle_Wifi ;;
-			bluetooth) _Log; _Toggle_Bluetooth ;;
+			wifi) _Toggle_Wifi ;;
+			bluetooth) _Toggle_Bluetooth ;;
 			esac ;;
 
 		esac ;;
@@ -125,26 +124,31 @@ ACPI_Event ()
 	volume) shift; case $1 in
 
 		input) 	shift; case $1 in
-			mute) _Log ;;
+			mute) ;;
 			esac ;;
 
 		output) shift; case $1 in
-			up) _Log ;;
-			down) _Log ;;
-			mute) _Log ;;
+			up) ;;
+			down) ;;
+			mute) ;;
 			esac ;;
 
 		esac ;;
 
-	*)	logger "ACPI KNOWN BUT UNHANDLED EVENT: $_options"
+	*) _log_prefix="ACPI KNOWN BUT UNHANDLED EVENT:"
 
 	esac
+
+	logger "$_log_prefix $_options";
 
 }
 
 # ----------------------------------------------------------------------
-# Define Utility Functions
+# Functions
 # ----------------------------------------------------------------------
+
+Log () { logger "ACPI EXECUTION: $* (${FUNCNAME[1]})"; }
+
 Is_True ()
 {
 	shopt -s nocasematch;
@@ -154,10 +158,6 @@ Is_True ()
 	esac;
 	shopt -u nocasematch;
 }
-
-# ----------------------------------------------------------------------
-# Map event codes to ACPI_Event categories
-# ----------------------------------------------------------------------
 
 Map_Event_Codes ()
 {
@@ -228,7 +228,7 @@ Map_Event_Codes ()
 	esac
 }
 
-Log () { logger "ACPI EXECUTION: $* (${FUNCNAME[1]})"; }
+_Lock_System () { physlock -dsu $USER; }
 
 _Poweroff ()
 {
@@ -246,7 +246,8 @@ _Sleep ()
 	ip link set wlan0 down
 	ip link set eth0 down
 
-	echo -n mem >/sys/power/state # kernel sleep
+	_Lock_System
+	echo -n mem >/sys/power/state
 
 	ip link set wlan0 $wlanstate
 	rc.d restart net-auto-wireless
