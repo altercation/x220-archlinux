@@ -42,7 +42,7 @@ ACPI_Event ()
 {
 
 	local _options="$*"
-	local _log_prefix="ACPI EVENT:"
+	logger "ACPI EVENT RECEIVED: $_options";
 
 	case $1 in
 	power) shift; case $1 in
@@ -135,11 +135,9 @@ ACPI_Event ()
 
 		esac ;;
 
-	*) _log_prefix="ACPI KNOWN BUT UNHANDLED EVENT:"
+	*) logger "ACPI KNOWN BUT UNHANDLED EVENT: $_options"
 
 	esac
-
-	logger "$_log_prefix $_options";
 
 }
 
