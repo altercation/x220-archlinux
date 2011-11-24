@@ -73,6 +73,10 @@ ACPI_Event ()
 
 		esac ;;
 
+	security) shift; case $1 in
+		lock) _Log; physlock -dsu $USER ;;
+		esac ;;
+
 	display) shift; case $1 in
 
 		video) shift; case $1 in
@@ -250,7 +254,7 @@ _Sleep ()
 
 	[[ $(cat /sys/class/power_supply/AC/online) > 0 ]] && _Powersave max || _Powersave min # power state?
 
-	logacpi "RESUMED";
+	Log "RESUMED";
 }
 
 _Sleep_for_wpa_auto ()
@@ -262,17 +266,17 @@ _Sleep_for_wpa_auto ()
 	modprobe iwlagn && ip link set wlan0 $wlanstate # always reload module; network stutters briefly otherwise
 	[[ -n $sm && $wlanstate == up ]] && rc.d restart wpa_auto && Log "safe sleep mode; restarting wpa_auto" # slower, only in safe mode
 	[[ $(cat /sys/class/power_supply/AC/online) > 0 ]] && _Powersave max || _Powersave min # power state?
-	logacpi "RESUMED";
+	Log "RESUMED";
 }
 
 _Toggle_Bluetooth ()
 {
 	if rfkill list bluetooth | grep -iq "soft blocked: yes"
 	then
-		logacpi "BLUETOOTH TOGGLE ON";
+		Log "BLUETOOTH TOGGLE ON";
 		local btstatus=unblock
 	else
-		logacpi "BLUETOOTH TOGGLE OFF";
+		Log "BLUETOOTH TOGGLE OFF";
 		local btstatus=block
 	fi
 	echo -n $btstatus > /var/tmp/bt
@@ -290,7 +294,7 @@ _Toggle_Wifi ()
 		#modprobe -r iwlagn
 	else
 		Log "WIFI ON"
-		#ip link set wlan0 up && rc.d restart wpa_auto && logacpi "WIFI ON"
+		#ip link set wlan0 up && rc.d restart wpa_auto && Log "WIFI ON"
 		#netcfg all-resume
 		#modprobe iwlagn
 		ip link set wlan0 up
@@ -303,9 +307,9 @@ _Switch_Radios ()
 {
 	if rfkill list wifi | grep -iq "hard blocked: yes";
 	then
-		logacpi "RADIOS HARD SWITCHED OFF";
+		Log "RADIOS HARD SWITCHED OFF";
 	else
-		logacpi "RADIOS HARD SWITCHED ON";
+		Log "RADIOS HARD SWITCHED ON";
 		eval "rfkill $(cat /var/tmp/bt) bluetooth";
 		ip link set wlan0 up; rc.d restart wpa_auto;
 	fi;
@@ -406,7 +410,7 @@ _Autolight ()
 }
 
 # TODO: this isn't working...
-_Mic () { /usr/bin/amixer sset Capture toggle; logacpi "AUDIO: MIC MUTE"; }
+_Mic () { /usr/bin/amixer sset Capture toggle; Log "AUDIO: MIC MUTE"; }
 
 _Boot_Events ()
 { 
