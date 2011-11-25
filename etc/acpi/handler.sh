@@ -104,8 +104,8 @@ ACPI_Event ()
 		    esac ;;
 
 		stylus) shift; case $1 in
-		    dock) xdotool key "Ctrl+F9"; ;;
-		    eject) xdotool key "Shift+F9" "F9"; ;;
+		    eject) _Annotate start ;;
+		    dock) _Annotate finish ;;
 		    esac ;;
 
 		esac ;;
@@ -128,9 +128,9 @@ ACPI_Event ()
 			esac ;;
 
 		output) shift; case $1 in
-			up) ;;
-			down) ;;
-			mute) ;;
+			up) amixer set Master 5%+ unmute -q ;;
+			down) amixer set Master 5%- unmute -q ;;
+			mute) amixer set Master toggle -q ;;
 			esac ;;
 
 		esac ;;
@@ -406,6 +406,27 @@ _Autolight ()
 	killall calise
 	calise --no-gui --verbosity=0 --gap 0.1 --cam=/dev/video0 --steps=15 --delta=0.50 --offset=0.25 --bl-offset=6 --invert --profile=/etc/calise.conf &
 	(sleep 3 && killall calise) &
+}
+
+_Annotate ()
+{
+	_scrot_cmd="xdotool key "Ctrl+F9" && \
+		    chmod 644 \$f && \
+		    chown $USER:users \$f && \
+		    mv \$f /home/$USER/tmp/screenshots/ && \
+		    su -c \"google picasa post 'Screenshots' /home/$USER/tmp/screenshots/\$f\" es"
+	case $1 in
+	    start)
+		xdotool key "Shift+F9" "F9";
+		;;
+	    finish)
+		[[ -d "/home/$USER/tmp/screenshots" ]] && mkdir -p "/home/$USER/tmp/screenshots"
+		#scrot "$(hostname)_%Y-%m-%d-%T_\$wx\$h.png" -e "chmod 644 \$f && chown $USER:users \$f && mv \$f /home/$USER/tmp/screenshots/" &> /tmp/dump
+		su $USER
+		scrot "$(hostname)_%Y-%m-%d-%T_\$wx\$h.png" -e "$_scrot_cmd"
+		exit
+		;;
+	esac
 }
 
 # TODO: this isn't working...
