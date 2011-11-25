@@ -410,6 +410,8 @@ _Autolight ()
 
 _Annotate ()
 {
+	_capture_dir="/home/$USER/tmp/screenshots"
+	_scrot_filename="$(hostname)_%Y-%m-%d-%T_\$wx\$h.png"
 	_scrot_cmd="xdotool key "Ctrl+F9" && \
 		    chmod 644 \$f && \
 		    chown $USER:users \$f && \
@@ -420,11 +422,8 @@ _Annotate ()
 		xdotool key "Shift+F9" "F9";
 		;;
 	    finish)
-		[[ -d "/home/$USER/tmp/screenshots" ]] && mkdir -p "/home/$USER/tmp/screenshots"
-		#scrot "$(hostname)_%Y-%m-%d-%T_\$wx\$h.png" -e "chmod 644 \$f && chown $USER:users \$f && mv \$f /home/$USER/tmp/screenshots/" &> /tmp/dump
-		su $USER
-		scrot "$(hostname)_%Y-%m-%d-%T_\$wx\$h.png" -e "$_scrot_cmd"
-		exit
+		[[ ! -d "$_capture_dir" ]] && mkdir -p "$_capture_dir" && chmod 755 $_capture_dir && chown $USER:users $_capture_dir
+		scrot "$_scrot_filename" -e "$_scrot_cmd"
 		;;
 	esac
 }
